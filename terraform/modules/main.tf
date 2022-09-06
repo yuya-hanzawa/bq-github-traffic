@@ -11,7 +11,7 @@ data "archive_file" "zip_source_files" {
 
 resource "google_storage_bucket_object" "transfer_files_bucket" {
   name   = var.zip_name
-  bucket = google_storage_bucket.GCF_bucket.name
+  bucket = google_storage_bucket.create_gcf_bucket.name
   source = "${data.archive_file.zip_source_files.output_path}"
 }
 
@@ -20,8 +20,8 @@ resource "google_cloudfunctions_function" "create_gcf" {
   runtime     = "python39"
 
   available_memory_mb          = 256
-  source_archive_bucket        = google_storage_bucket.create_GCF_bucket.name
-  source_archive_object        = google_storage_bucket_object.transfer_files_bucket.source
+  source_archive_bucket        = google_storage_bucket.create_gcf_bucket.name
+  source_archive_object        = google_storage_bucket_object.transfer_files_bucket.name
   trigger_http                 = true
   https_trigger_security_level = "SECURE_ALWAYS"
   timeout                      = 60

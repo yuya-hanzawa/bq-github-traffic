@@ -1,10 +1,10 @@
 provider "google" {
-  project = var.project_name
+  project = var.project_id
   region  = var.region
 }
 
 module "cloud-functions" {
-    source            = "../environments/"
+    source            = "../modules/"
     bucket_name       = var.bucket_name
     zip_name          = "functions.zip"
     gcf_name          = "Get-github-traffic"
