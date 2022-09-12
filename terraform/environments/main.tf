@@ -1,14 +1,20 @@
+variable project_id {}
+variable region {}
+
 provider "google" {
   project = var.project_id
   region  = var.region
 }
 
-module "cloud-functions" {
-    source            = "../modules/"
-    bucket_name       = var.bucket_name
-    zip_name          = "functions.zip"
-    gcf_name          = "Get-github-traffic"
-    project_id        = var.project_id
-    dataset_id        = var.dataset_id
-    authorization_key = var.authorization_key
+module "gcf_bucket" {
+  source      = "../modules/cloud_storage/"
+  bucket_name = "github-traffic-bucket"
+}
+
+module "cloud_functions" {
+  source            = "../modules/cloud_functions/"
+  script_dir        = "../../functions/"
+  zip_name          = "functions.zip"
+  bucket_name       = module.gcf_bucket.gcs_name
+  gcf_name          = "Get-github-traffic"
 }
