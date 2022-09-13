@@ -2,7 +2,6 @@ functions/env.yaml
 
 terraform/environments/terraform.tfvars
 
-terraform/environments/variables.tf
 terraform/environments/.terraform/
 terraform/environments/.terraform.lock.hcl
 terraform/environments/.terraform.tfstate.lock.info
