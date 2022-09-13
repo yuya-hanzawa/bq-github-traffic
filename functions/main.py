@@ -2,10 +2,18 @@ import datetime
 import os
 import requests
 from google.cloud import bigquery
+from google.cloud import secretmanager
 
-PROJECT_ID        = os.environ.get('PROJECT_ID')
-DATASET_ID        = os.environ.get('DATASET_ID')
-AUTHORIZATION_KEY = os.environ.get('AUTHORIZATION_KEY')
+PROJECT_ID = os.environ.get('PROJECT_ID')
+DATASET_ID = os.environ.get('DATASET_ID')
+
+def access_secret_version(project_id, secret_name, secret_ver='latest'):
+    client = secretmanager.SecretManagerServiceClient()
+    name = client.secret_version_path(project_id, secret_name, secret_ver)
+    response = client.access_secret_version(name=name)
+    return response.payload.data.decode('UTF-8')
+
+AUTHORIZATION_KEY = access_secret_version(PROJECT_ID, 'AUTHORIZATION_KEY')
 
 headers = {
     'Accept': 'application/vnd.github+json',
@@ -24,7 +32,6 @@ def get_traffic_json():
             response_dict["name"] = repo_name
             traffic_data.append(response_dict)
     return traffic_data
-
 
 def main(request):
     """Responds to any HTTP request.
@@ -55,7 +62,7 @@ def main(request):
             dataset.table(f'github_traffic_{day:%Y%m%d}'),
             job_config).result()
 
-        print("Successful")
-
     except Exception as e:
         raise(e)
+
+    return "Successful"
