@@ -13,6 +13,7 @@ resource "google_cloud_scheduler_job" "job" {
   http_target {
     http_method = "POST"
     uri         = "https://workflowexecutions.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/workflows/${google_workflows_workflow.workflow.name}/executions"
+    #body        = base64encode("{"argument": "{\"url\": \"${var.url}\"}"})
 
     oauth_token {
       service_account_email = var.service_account

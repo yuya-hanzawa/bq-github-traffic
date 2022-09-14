@@ -44,16 +44,22 @@ def main(request):
     """
     day = datetime.datetime.now() - datetime.timedelta(days=1)
 
+    job_config = bigquery.LoadJobConfig(
+        schema=[
+            bigquery.SchemaField("name", "STRING", mode='NULLABLE', description='リポジトリの名前'),
+            bigquery.SchemaField("uniques", "INTEGER", mode='NULLABLE', description='ユニークなビュアー'),
+            bigquery.SchemaField("views", "RECORD", mode='NULLABLE', description='ビューレコード'),
+            bigquery.SchemaField("views.count", "INTEGER", mode='NULLABLE', description='ビュアーの合計'),
+            bigquery.SchemaField("views.uniques", "INTEGER", mode='NULLABLE', description='ユニークなビュアー'),
+            bigquery.SchemaField("views.timestamp", "TIMESTAMP", mode='NULLABLE', description='レコードの日付'),
+            bigquery.SchemaField("count", "INTEGER", mode='NULLABLE', description='ビュアーの合計')
+        ],
+        write_disposition = 'WRITE_TRUNCATE'
+    )
+
     try:
         traffic_json_data = get_traffic_json()
 
-    except Exception as e:
-        raise(e)
-
-    job_config = bigquery.LoadJobConfig()
-    job_config.autodetect = True
-
-    try:
         bq = bigquery.Client(project=PROJECT_ID)
         dataset = bq.dataset(DATASET_ID)
 

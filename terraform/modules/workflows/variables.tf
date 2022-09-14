@@ -18,3 +18,7 @@ variable "schduler_name" {
 variable "project_id" {
   type = string
 }
+
+variable "url" {
+  type = string 
+}

@@ -7,7 +7,7 @@ main:
             - call_function:
                 call: http.get
                 args:
-                  url: https://us-central1-hanzawa-yuya.cloudfunctions.net/Get-github-traffic
+                  url: $${args.url}
                   auth:
                     type: OIDC
                 result: call_function_result

@@ -1,6 +1,7 @@
 variable project_id {}
 variable dataset_id {}
 variable service_account_id {}
+variable url {}
 
 provider "google" {
   project = var.project_id
@@ -26,9 +27,10 @@ module "cloud_functions" {
 }
 
 module "workflows" {
-  source                = "../modules/workflows/"
-  workflows_name        = "github-traffic-workflow"
-  service_account       = var.service_account_id
-  schduler_name         = "workflow-schduler"
-  project_id            = var.project_id
+  source          = "../modules/workflows/"
+  workflows_name  = "github-traffic-workflow"
+  service_account = var.service_account_id
+  schduler_name   = "workflow-schduler"
+  project_id      = var.project_id
+  url             = var.url
 }
