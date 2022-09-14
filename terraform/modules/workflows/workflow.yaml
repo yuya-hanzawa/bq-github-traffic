@@ -1,0 +1,30 @@
+main:
+  params: [ args ]
+  steps:
+    - multi_request:
+        try:
+          steps:
+            - call_function:
+                call: http.get
+                args:
+                  url: https://us-central1-hanzawa-yuya.cloudfunctions.net/Get-github-traffic
+                  auth:
+                    type: OIDC
+                result: call_function_result
+#           - request2:
+#               call: http.get
+#               args:
+#                 url: https://jsonplaceholder.typicode.com/todos/aa
+            - finish:
+                return: $${call_function_result.body}
+
+        except:
+          as: e
+          steps:
+            - log_error:
+                call: sys.log
+                args:
+                  text: $${json.encode_to_string(e)}
+                  severity: CRITICAL
+            - raise_error:
+                raise: $${e}

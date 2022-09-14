@@ -1,10 +1,10 @@
 variable project_id {}
-variable region {}
 variable dataset_id {}
+variable service_account_id {}
 
 provider "google" {
   project = var.project_id
-  region  = var.region
+  region  = "us-central1"
 }
 
 module "gcf_bucket" {
@@ -23,4 +23,12 @@ module "cloud_functions" {
   zip_name    = "functions.zip"
   bucket_name = module.gcf_bucket.gcs_name
   gcf_name    = "Get-github-traffic"
+}
+
+module "workflows" {
+  source                = "../modules/workflows/"
+  workflows_name        = "github-traffic-workflow"
+  service_account       = var.service_account_id
+  schduler_name         = "workflow-schduler"
+  project_id            = var.project_id
 }
