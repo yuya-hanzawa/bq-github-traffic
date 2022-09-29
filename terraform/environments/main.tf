@@ -32,5 +32,6 @@ module "workflows" {
   service_account = var.service_account_id
   schduler_name   = "workflow-schduler"
   project_id      = var.project_id
+  dataset_id      = var.dataset_id
   url             = var.url
 }

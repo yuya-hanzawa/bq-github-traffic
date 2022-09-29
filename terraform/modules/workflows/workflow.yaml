@@ -11,13 +11,63 @@ main:
                   auth:
                     type: OIDC
                 result: call_function_result
-#           - request2:
-#               call: http.get
-#               args:
-#                 url: https://jsonplaceholder.typicode.com/todos/aa
+            - check_warehouse_table:
+                call: googleapis.bigquery.v2.tables.list
+                args:
+                  datasetId: $${args.dataset_id}
+                  projectId: $${args.project_id}
+                result: listResult
+            - conditionalSwitch:
+                switch:
+                  - condition: $${listResult.totalItems == 1}
+                    next: create_warehouse_table
+                next: execute_sql
+            - create_warehouse_table:
+                call: googleapis.bigquery.v2.jobs.query
+                args:
+                  projectId: $${args.project_id}
+                  body:
+                    query: "CREATE TABLE $${args.project_id}.$${args.dataset_id}.github_traffic_warehouse AS (
+                              SELECT 
+                                name,
+                                v.count AS total_count,
+                                v.uniques, 
+                                v.timestamp AS utc_time
+                              FROM
+                                `$${args.project_id}.$${args.dataset_id}.github_traffic_$${call_function_result.body}`,
+                              UNNEST(views) as v
+                            )"
+                    useLegacySql: false
+                next: finish
+            - execute_sql:
+                call: googleapis.bigquery.v2.jobs.query
+                args:
+                  projectId: $${args.project_id}
+                  body:
+                    query: "INSERT `hanzawa-yuya.Github_traffic_dataset.github_traffic_warehouse`
+                              WITH table_tmp AS (
+                                SELECT 
+                                  name,
+                                  v.count AS total_count,
+                                  v.uniques, 
+                                  v.timestamp AS utc_time
+                                FROM
+                                  `hanzawa-yuya.Github_traffic_dataset.github_traffic_$${call_function_result.body}`,
+                                UNNEST(views) as v
+                              )
+                            
+                              SELECT
+                                name,
+                                total_count,
+                                uniques, 
+                                utc_time
+                              FROM
+                                table_tmp
+                              WHERE
+                                utc_time = PARSE_TIMESTAMP('%Y%m%d', $${call_function_result.body})"
+                    useLegacySql: false
             - finish:
-                return: $${call_function_result.body}
-
+                return: "Successful"
         except:
           as: e
           steps:

@@ -22,3 +22,7 @@ variable "project_id" {
 variable "url" {
   type = string 
 }
+
+variable "dataset_id" {
+  type = string
+}
