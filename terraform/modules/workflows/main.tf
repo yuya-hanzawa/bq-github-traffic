@@ -5,7 +5,7 @@ resource "google_workflows_workflow" "workflow" {
   source_contents = templatefile("${path.module}/workflow.yaml", {})
 }
 
-resource "google_cloud_scheduler_job" "job" {
+resource "google_cloud_scheduler_job" "cloud-scheduler" {
   name      = var.schduler_name
   schedule  = "0 12 * * *"
   time_zone = "Asia/Tokyo"

@@ -71,4 +71,4 @@ def main(request):
     except Exception as e:
         raise(e)
 
-    return day
+    return str(day)

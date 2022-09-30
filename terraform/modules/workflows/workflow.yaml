@@ -1,6 +1,10 @@
 main:
   params: [ args ]
   steps:
+    - init:
+        assign:
+          - table_path: $${"`" + sys.get_env("GOOGLE_CLOUD_PROJECT_ID") + "." + args.dataset_id + "."}
+          - selectStatement: $${"SELECT name, v.count AS total_count, v.uniques, v.timestamp AS utc_time FROM "}
     - multi_request:
         try:
           steps:
@@ -15,7 +19,7 @@ main:
                 call: googleapis.bigquery.v2.tables.list
                 args:
                   datasetId: $${args.dataset_id}
-                  projectId: $${args.project_id}
+                  projectId: $${sys.get_env("GOOGLE_CLOUD_PROJECT_ID")}
                 result: listResult
             - conditionalSwitch:
                 switch:
@@ -25,46 +29,17 @@ main:
             - create_warehouse_table:
                 call: googleapis.bigquery.v2.jobs.query
                 args:
-                  projectId: $${args.project_id}
+                  projectId: $${sys.get_env("GOOGLE_CLOUD_PROJECT_ID")}
                   body:
-                    query: "CREATE TABLE $${args.project_id}.$${args.dataset_id}.github_traffic_warehouse AS (
-                              SELECT 
-                                name,
-                                v.count AS total_count,
-                                v.uniques, 
-                                v.timestamp AS utc_time
-                              FROM
-                                `$${args.project_id}.$${args.dataset_id}.github_traffic_$${call_function_result.body}`,
-                              UNNEST(views) as v
-                            )"
+                    query: $${"CREATE TABLE " + table_path + "github_traffic_warehouse` AS (" + selectStatement + table_path + "github_traffic_" + call_function_result.body + "`, UNNEST(views) as v)"}
                     useLegacySql: false
                 next: finish
             - execute_sql:
                 call: googleapis.bigquery.v2.jobs.query
                 args:
-                  projectId: $${args.project_id}
+                  projectId: $${sys.get_env("GOOGLE_CLOUD_PROJECT_ID")}
                   body:
-                    query: "INSERT `hanzawa-yuya.Github_traffic_dataset.github_traffic_warehouse`
-                              WITH table_tmp AS (
-                                SELECT 
-                                  name,
-                                  v.count AS total_count,
-                                  v.uniques, 
-                                  v.timestamp AS utc_time
-                                FROM
-                                  `hanzawa-yuya.Github_traffic_dataset.github_traffic_$${call_function_result.body}`,
-                                UNNEST(views) as v
-                              )
-                            
-                              SELECT
-                                name,
-                                total_count,
-                                uniques, 
-                                utc_time
-                              FROM
-                                table_tmp
-                              WHERE
-                                utc_time = PARSE_TIMESTAMP('%Y%m%d', $${call_function_result.body})"
+                    query: $${"INSERT " + table_path + "github_traffic_warehouse` WITH table_tmp AS (SELECT name, v.count AS total_count, v.uniques, v.timestamp AS utc_time FROM " + table_path + "github_traffic_" + call_function_result.body + "`, UNNEST(views) as v SELECT name, total_count, uniques, utc_time FROM table_tmp WHERE utc_time = PARSE_TIMESTAMP('%Y%m%d', " + call_function_result.body)}
                     useLegacySql: false
             - finish:
                 return: "Successful"

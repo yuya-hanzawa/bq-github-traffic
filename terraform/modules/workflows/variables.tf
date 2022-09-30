@@ -19,10 +19,11 @@ variable "project_id" {
   type = string
 }
 
-variable "url" {
-  type = string 
-}
-
 variable "dataset_id" {
   type = string
+}
+
+
+variable "url" {
+  type = string 
 }
